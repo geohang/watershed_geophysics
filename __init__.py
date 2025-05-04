@@ -23,7 +23,7 @@ from watershed_geophysics.core.mesh_utils import (
 )
 
 # MODFLOW integration
-from watershed_geophysics.modflow.water_content import (
+from watershed_geophysics.hydrology.water_content import (
     MODFLOWWaterContent,
     binaryread
 )
