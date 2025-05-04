@@ -11,3 +11,10 @@ from watershed_geophysics.solvers.linear_solvers import (
     IterativeRefinement,
     get_optimal_solver
 )
+
+
+
+from watershed_geophysics.solvers.solver import (
+    generalized_solver,
+
+)

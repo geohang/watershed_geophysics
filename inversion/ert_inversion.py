@@ -32,6 +32,9 @@ class ERTInversion(InversionBase):
                 - relativeError: Relative data error
                 - lambda_rate: Lambda reduction rate
                 - lambda_min: Minimum lambda value
+                - use_gpu: Whether to use GPU acceleration (requires CuPy)
+                - parallel: Whether to use parallel CPU computation
+                - n_jobs: Number of parallel jobs (-1 for all cores)
         """
         # Load ERT data
         data = ert.load(data_file)
@@ -40,13 +43,17 @@ class ERTInversion(InversionBase):
         super().__init__(data, mesh, **kwargs)
         
         # Set ERT-specific default parameters
+
         ert_defaults = {
             'lambda_val': 10.0,
             'method': 'cgls',
             'absoluteUError': 0.0,
             'relativeError': 0.05,
-            'lambda_rate': 0.8,
-            'lambda_min': 0.0
+            'lambda_rate': 1.0,
+            'lambda_min': 1.0,
+            'use_gpu': False,      # Add GPU acceleration option
+            'parallel': False,     # Add parallel computation option
+            'n_jobs': -1           # Number of parallel jobs (-1 means all available cores)
         }
         
         # Update parameters with ERT defaults
@@ -162,7 +169,7 @@ class ERTInversion(InversionBase):
             fdert = (np.dot(self.Wdert, dataerror_ert)).T.dot(np.dot(self.Wdert, dataerror_ert))
             
             # Model regularization term
-            fmert = (L_mr * self.Wm_r * (mr - mr_R)).T.dot(L_mr * self.Wm_r * (mr - mr_R))
+            fmert = (L_mr * self.Wm_r * (mr - mr_R)).T.dot( self.Wm_r * (mr - mr_R))
             
             # Total objective function
             fc_r = fdert + fmert
@@ -193,13 +200,13 @@ class ERTInversion(InversionBase):
             
             # Alternative gradient formulation
             gc_r1 = Jr.T.dot(self.Wdert.T.dot(self.Wdert)).dot(dr - self.rhos1) + \
-                   (L_mr * self.Wm_r).T.dot(L_mr * self.Wm_r).dot(delta_mr)
+                   (L_mr * self.Wm_r).T.dot( self.Wm_r).dot(delta_mr)
             
             # Solve normal equations for update
             d_mr = generalized_solver(
                 N11_R, -gc_r, 
                 method=self.parameters['method'],
-                use_gpu=self.parameters.get('use_gpu', False),
+                use_gpu=self.parameters['use_gpu'],
                 parallel=self.parameters.get('parallel', False),
                 n_jobs=self.parameters.get('n_jobs', -1)
             )
@@ -214,12 +221,12 @@ class ERTInversion(InversionBase):
                 
                 dataerror_ert = self.rhos1 - dr
                 fdert = (np.dot(self.Wdert, dataerror_ert)).T.dot(np.dot(self.Wdert, dataerror_ert))
-                fmert = (L_mr * self.Wm_r * (mr1 - mr_R)).T.dot(L_mr * self.Wm_r * (mr1 - mr_R))
+                fmert = (L_mr * self.Wm_r * (mr1 - mr_R)).T.dot( self.Wm_r * (mr1 - mr_R))
                 
                 ft_r = fdert + fmert
                 
                 fgoal = fc_r - 1e-4 * mu_LS * (d_mr.T.dot(gc_r1.reshape(gc_r1.shape[0], 1)))
-                print(f'ft_r: {ft_r}, fgoal: {fgoal}')
+                #print(f'ft_r: {ft_r}, fgoal: {fgoal}')
                 
                 if ft_r < fgoal:
                     break
@@ -268,7 +275,7 @@ class ERTInversion(InversionBase):
         result.final_model = final_model.ravel()
         result.coverage = FinalJ
         result.predicted_data = dr.array()
-        result.mesh = self.mesh
+        result.mesh = mesh2
         
         print('End of inversion')
         return result

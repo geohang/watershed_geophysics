@@ -15,7 +15,8 @@ from watershed_geophysics.core.interpolation import (
     setup_profile_coordinates,
     interpolate_structure_to_profile,
     prepare_2D_profile_data,
-    interpolate_to_mesh
+    interpolate_to_mesh,
+    create_surface_lines
 )
 
 __all__ = [
@@ -30,4 +31,5 @@ __all__ = [
     'interpolate_structure_to_profile',
     'prepare_2D_profile_data',
     'interpolate_to_mesh'
+    'create_surface_lines'
 ]

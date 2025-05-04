@@ -26,11 +26,12 @@ def interpolate_to_profile(data: np.ndarray,
     Returns:
         Interpolated values along profile
     """
+    
     X_new = X_grid.ravel()
     Y_new = Y_grid.ravel()
     
-    return griddata((X_new, Y_new), data.ravel(),
-                   (X_pro.ravel(), Y_pro.ravel()),
+    return griddata((X_new, Y_new), np.array(data).ravel(),
+                   (np.array(X_pro).ravel(), np.array(Y_pro).ravel()),
                    method=method)
 
 
@@ -152,6 +153,7 @@ def interpolate_to_mesh(property_values: np.ndarray,
                        mesh_x: np.ndarray,
                        mesh_y: np.ndarray,
                        mesh_markers: np.ndarray,
+                       ID,
                        layer_markers: list = [3, 0, 2]) -> np.ndarray:
     """
     Interpolate property values from profile to mesh with layer-specific handling.
@@ -170,59 +172,38 @@ def interpolate_to_mesh(property_values: np.ndarray,
     """
     # Initialize output array
     result = np.zeros_like(mesh_markers, dtype=float)
-    
-    # Get number of points and layers
-    n_points = profile_distance.shape[0]
-    n_layers = len(layer_markers)
-    
-    # Create layer boundaries for interpolation
-    layer_boundaries = np.zeros((n_layers+1, n_points))
-    for i in range(n_layers):
-        layer_boundaries[i] = depth_values[i]
-    layer_boundaries[-1] = depth_values[-1]  # Bottom boundary
-    
-    # Create coordinates and values for each layer
-    for i, marker in enumerate(layer_markers):
-        # Extract cells for this layer
-        layer_mask = mesh_markers == marker
-        if not np.any(layer_mask):
-            continue
-            
-        # Get mesh points for this layer
-        points_x = mesh_x[layer_mask]
-        points_y = mesh_y[layer_mask]
-        
-        # Create interpolation points
-        x_points = np.repeat(profile_distance, 2)
-        y_points = np.column_stack((layer_boundaries[i], layer_boundaries[i+1])).flatten()
-        
-        # Create values array
-        if property_values.ndim == 1:
-            values = np.repeat(property_values, 2)
-        else:
-            values = np.repeat(property_values[i], 2)
-        
-        # Do interpolation
-        values_linear = griddata(
-            (x_points, y_points),
-            values,
-            (points_x, points_y),
-            method='linear'
-        )
-        
-        # Fill NaN values with nearest neighbor interpolation
-        nan_mask = np.isnan(values_linear)
-        if np.any(nan_mask):
-            values_nearest = griddata(
-                (x_points, y_points),
-                values,
-                (points_x[nan_mask], points_y[nan_mask]),
-                method='nearest'
-            )
-            values_linear[nan_mask] = values_nearest
-        
-        # Store results
-        result[layer_mask] = values_linear
+
+    # print(profile_distance.shape)
+    # print(depth_values.shape)
+    # print(property_values.shape)
+    L_profile_new = np.repeat(profile_distance.reshape(1,-1),property_values.shape[0],axis=0)
+
+    Depth = depth_values[:14]
+
+    maxele = 0 # set 0 here
+
+    for marker in layer_markers:
+        # For each layer marker, interpolate property values to mesh grid
+        # Note: ID is used to identify which layer to interpolate for
+        # Interpolate property values to mesh grid for each layer
+        grid_z1 = griddata((L_profile_new[ID==marker].ravel(),Depth[ID==marker].ravel()- maxele), property_values[ID==marker].ravel(), (mesh_x[mesh_markers==marker], mesh_y[mesh_markers==marker]), method='linear')
+        temp_ID = np.isnan(grid_z1)
+        grid_z2 = griddata((L_profile_new[ID==marker].ravel(),Depth[ID==marker].ravel()- maxele), property_values[ID==marker].ravel(), (mesh_x[mesh_markers==marker], mesh_y[mesh_markers==marker]), method='nearest')
+        grid_z1[temp_ID] = grid_z2[temp_ID]
+        result[mesh_markers==marker] = grid_z1.copy()
+
+    # # Interpolate property values to mesh grid for each layer
+    # grid_z1 = griddata((L_profile_new[ID==0].ravel(),Depth[ID==0].ravel()- maxele), property_values[ID==0].ravel(), (mesh_x[mesh_markers==0], mesh_y[mesh_markers==0]), method='linear')
+    # temp_ID = np.isnan(grid_z1)
+    # grid_z2 = griddata((L_profile_new[ID==0].ravel(),Depth[ID==0].ravel()- maxele), property_values[ID==0].ravel(), (mesh_x[mesh_markers==0], mesh_y[mesh_markers==0]), method='nearest')
+    # grid_z1[temp_ID] = grid_z2[temp_ID]
+    # result[mesh_markers==0] = grid_z1.copy()
+
+
+
+    #result =  griddata((L_profile_new.ravel(),depth_values[:14].ravel()), property_values.ravel(), (mesh_x, mesh_y), method='nearest')
+
+
     
     return result
 
@@ -299,6 +280,7 @@ class ProfileInterpolator:
                           mesh_x: np.ndarray,
                           mesh_y: np.ndarray,
                           mesh_markers: np.ndarray,
+                          ID: np.ndarray,
                           layer_markers: list = [3, 0, 2]) -> np.ndarray:
         """
         Interpolate property values from profile to mesh with layer-specific handling.
@@ -315,5 +297,44 @@ class ProfileInterpolator:
         """
         return interpolate_to_mesh(
             property_values, self.L_profile, depth_values,
-            mesh_x, mesh_y, mesh_markers, layer_markers
+            mesh_x, mesh_y, mesh_markers, ID,layer_markers
         )
+
+
+def create_surface_lines(L_profile: np.ndarray,
+                        structure: np.ndarray,
+                        top_idx: int = 0,
+                        mid_idx: int = 4,
+                        bot_idx: int = 12) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Create surface and boundary lines from structure data
+    
+    Args:
+        L_profile: Distance along profile
+        structure: Interpolated structure data
+        top_idx: Index for top surface
+        mid_idx: Index for middle boundary
+        bot_idx: Index for bottom boundary
+        
+    Returns:
+        surface: Surface coordinates
+        line1: First boundary coordinates
+        line2: Second boundary coordinates
+    """
+    # Extract and reshape structure layers
+    S1 = structure[top_idx,:].reshape(-1,1)
+    S2 = structure[mid_idx,:].reshape(-1,1)
+    S3 = structure[bot_idx,:].reshape(-1,1)
+    
+    # Create coordinate arrays
+    surface = np.hstack((L_profile.reshape(-1,1), S1))
+    line1 = np.hstack((L_profile.reshape(-1,1), S2))
+    line2 = np.hstack((L_profile.reshape(-1,1), S3))
+    
+    # Normalize by maximum elevation
+    #maxele = np.nanmax(surface[:,1])
+    surface[:,1] = surface[:,1] #- maxele
+    line1[:,1] = line1[:,1] #- maxele
+    line2[:,1] = line2[:,1] #- maxele
+    
+    return surface, line1, line2

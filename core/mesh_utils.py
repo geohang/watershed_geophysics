@@ -17,9 +17,9 @@ def create_mesh_from_layers(surface: np.ndarray,
     Create mesh from layer boundaries and get cell centers and markers.
     
     Args:
-        surface: Surface coordinates [[x,z],...] (already normalized)
-        line1: First layer boundary coordinates (already normalized)
-        line2: Second layer boundary coordinates (already normalized)
+        surface: Surface coordinates [[x,z],...] 
+        line1: First layer boundary coordinates 
+        line2: Second layer boundary coordinates 
         bottom_depth: Depth below surface minimum for mesh bottom
         quality: Mesh quality parameter
         area: Maximum cell area
@@ -31,7 +31,7 @@ def create_mesh_from_layers(surface: np.ndarray,
     """
     # Calculate bottom elevation from normalized surface
     min_surface_elev = np.nanmin(surface[:,1])
-    bottom_elev = min_surface_elev - bottom_depth
+    bottom_elev = bottom_depth #min_surface_elev - bottom_depth
     
     # Create reversed lines for polygon creation
     line1r = line1.copy()
@@ -135,12 +135,12 @@ class MeshCreator:
         # Normalize elevation by maximum elevation
         max_ele = np.nanmax(surface[:,1])
         surface_norm = surface.copy()
-        surface_norm[:,1] = surface_norm[:,1] - max_ele
+        surface_norm[:,1] = surface_norm[:,1]  #- max_ele
         
         layers_norm = []
         for layer in layers:
             layer_norm = layer.copy()
-            layer_norm[:,1] = layer_norm[:,1] - max_ele
+            layer_norm[:,1] = layer_norm[:,1] # - max_ele
             layers_norm.append(layer_norm)
         
         # Create mesh using specific implementation

@@ -72,15 +72,10 @@ from watershed_geophysics.solvers.linear_solvers import (
 
 # Petrophysics - Resistivity models
 from watershed_geophysics.petrophysics.resistivity_models import (
-    BaseResistivityModel,
-    ArchieModel,
-    WaxmanSmitsModel,
-    ModifiedWaxmanSmits,
-    HybridResistivityModel,
-    calculate_resistivity_archie,
-    waxman_smits_resistivity,
-    estimate_saturation_from_resistivity_Ro,
-    estimate_saturation_fsolve_Ro
+    water_content_to_resistivity,
+    resistivity_to_water_content,
+    resistivity_to_saturation,
+
 )
 
 # Petrophysics - Velocity models

@@ -4,13 +4,15 @@ Time-lapse ERT inversion functionality.
 import numpy as np
 import pygimli as pg
 from pygimli.physics import ert
-from scipy.sparse import diags, block_diag, csr_matrix
+from scipy.sparse import diags, csr_matrix
 from scipy.sparse.linalg import lsqr
 from typing import Optional, Union, List, Dict, Any, Tuple
+from scipy.linalg import block_diag
+
 
 from .base import InversionBase, TimeLapseInversionResult
 from ..forward.ert_forward import ertforward2, ertforandjac2
-from ..solvers.linear_solvers import generalized_solver
+from ..solvers.solver import generalized_solver
 
 
 def _calculate_jacobian(fwd_operators, model, mesh, size):
@@ -145,7 +147,8 @@ class TimeLapseERTInversion(InversionBase):
             'relativeError': 0.05,
             'lambda_rate': 0.8,
             'lambda_min': 1.0,
-            'inversion_type': 'L2'  # 'L1', 'L2', or 'L1L2'
+            'inversion_type': 'L2',  # 'L1', 'L2', or 'L1L2'
+            'model_constraints':(0.0001,10000.0),  # min and max resistivity
         }
         
         # Update parameters with time-lapse defaults
@@ -312,7 +315,9 @@ class TimeLapseERTInversion(InversionBase):
         min_mr, max_mr = self.parameters['model_constraints']
         min_mr = np.log(min_mr)
         max_mr = np.log(max_mr)
-        
+
+        print(min_mr, max_mr)
+
         # Track errors for each iteration
         Err_tot = []
         chi2_old = np.inf
@@ -354,7 +359,7 @@ class TimeLapseERTInversion(InversionBase):
                     ftert = float(alpha * (mr.T @ self.Wt.T @ self.Wt @ mr))
                     
                     # Gradient computation
-                    grad_data = Jr.T @ self.Wd.T @ self.Wd @ dataerror_ert
+                    grad_data = Jr.T @ self.Wd.T @ self.Wd @ dataerror_ert*-1
                     grad_model = Lambda * self.Wm.T @ self.Wm @ mr
                     grad_temporal = alpha * self.Wt.T @ self.Wt @ mr
                     
@@ -374,7 +379,7 @@ class TimeLapseERTInversion(InversionBase):
                     ftert = float(alpha * (temp_diff.T @ Rt @ temp_diff))
                     
                     # Gradient computation
-                    grad_data = Jr.T @ self.Wd.T @ Rd @ self.Wd @ dataerror_ert
+                    grad_data = Jr.T @ self.Wd.T @ Rd @ self.Wd @ dataerror_ert*-1
                     grad_model = Lambda * self.Wm.T @ Rs @ (self.Wm @ mr)
                     grad_temporal = alpha * self.Wt.T @ Rt @ (self.Wt @ mr)
                     
@@ -409,7 +414,7 @@ class TimeLapseERTInversion(InversionBase):
                     ftert = float(alpha * (temp_diff.T @ Rt @ temp_diff))
                     
                     # Gradient computation
-                    grad_data = Jr.T @ self.Wd.T @ Rd @ self.Wd @ dataerror_ert
+                    grad_data = Jr.T @ self.Wd.T @ Rd @ self.Wd @ dataerror_ert*-1
                     grad_model = Lambda * self.Wm.T @ Rs @ (self.Wm @ mr)
                     grad_temporal = alpha * self.Wt.T @ Rt @ (self.Wt @ mr)
                 
@@ -420,7 +425,7 @@ class TimeLapseERTInversion(InversionBase):
                 ftot = fdert + fmert + ftert
                 
                 # Compute chi-squared and check convergence
-                chi2_ert = fdert / len(dr)
+                chi2_ert = float(dataerror_ert.T @ self.Wd.T @ self.Wd @ dataerror_ert) / len(dr)
                 dPhi = abs(chi2_ert - chi2_old) / chi2_old if nn > 0 else 1.0
                 chi2_old = chi2_ert
                 
@@ -560,7 +565,7 @@ class TimeLapseERTInversion(InversionBase):
         # Store results
         result.final_models = final_model
         result.all_coverage = [FinalJ.copy() for _ in range(self.size)]
-        result.mesh = self.mesh
+        result.mesh = mesh2
         result.all_chi2 = Err_tot
         
         print('End of inversion')
