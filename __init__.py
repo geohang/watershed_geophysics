@@ -22,20 +22,13 @@ from watershed_geophysics.core.mesh_utils import (
     create_mesh_from_layers
 )
 
-# MODFLOW integration
 # Import from model_output module
-from .model_output import (
-    HydroModelOutput,
-    MODFLOWWaterContent,
-    MODFLOWPorosity
-)
+from watershed_geophysics.model_output.modflow_output import MODFLOWWaterContent, MODFLOWPorosity
+from watershed_geophysics.model_output.base import HydroModelOutput
 
-# Try to import ParFlow classes, but don't error if they're not available
+# Try to import ParFlow classes if available
 try:
-    from .model_output import (
-        ParflowSaturation,
-        ParflowPorosity
-    )
+    from watershed_geophysics.model_output.parflow_output import ParflowSaturation, ParflowPorosity
 except ImportError:
     pass
 
