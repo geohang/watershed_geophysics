@@ -23,10 +23,24 @@ from watershed_geophysics.core.mesh_utils import (
 )
 
 # MODFLOW integration
-from watershed_geophysics.hydrology.water_content import (
+# Import from model_output module
+from .model_output import (
+    HydroModelOutput,
     MODFLOWWaterContent,
-    binaryread
+    MODFLOWPorosity
 )
+
+# Try to import ParFlow classes, but don't error if they're not available
+try:
+    from .model_output import (
+        ParflowSaturation,
+        ParflowPorosity
+    )
+except ImportError:
+    pass
+
+
+
 
 # Forward modeling
 from watershed_geophysics.forward.ert_forward import (
