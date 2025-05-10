@@ -90,7 +90,7 @@ def create_mesh_from_layers(surface: np.ndarray,
     mesh_centers = np.array(mesh.cellCenters())
     markers = np.array(mesh.cellMarkers())
     
-    return mesh, mesh_centers, markers
+    return mesh, mesh_centers, markers,geom
 
 
 class MeshCreator:
@@ -145,11 +145,11 @@ class MeshCreator:
         
         # Create mesh using specific implementation
         if len(layers) == 2:
-            mesh, centers, markers_array = create_mesh_from_layers(
+            mesh, centers, markers_array,geom = create_mesh_from_layers(
                 surface_norm, layers_norm[0], layers_norm[1], 
                 bottom_depth, self.quality, self.area
             )
-            return mesh
+            return mesh,geom
         else:
             # Implement custom mesh creation for different number of layers
             raise NotImplementedError("Currently only 2-layer mesh creation is implemented")

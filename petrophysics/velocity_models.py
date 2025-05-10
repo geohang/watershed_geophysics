@@ -210,67 +210,69 @@ class DEMModel(BaseVelocityModel):
             Effective bulk modulus (GPa), effective shear modulus (GPa), and P-wave velocity (m/s)
         """
         # Initialize arrays for calculated values
-        K_eff = np.zeros(len(porosity))
-        G_eff = np.zeros(len(porosity))
+        Keff = np.zeros(len(porosity))
+        Geff = np.zeros(len(porosity))
         Vp = np.zeros(len(porosity))
         
         # Constants for fluid moduli
-        K_water = 2.0  # Bulk modulus of water (GPa)
-        K_air = 0.01   # Bulk modulus of air (GPa)
+        Kw = 2.0  # Bulk modulus of water (GPa)
+        Ka = 0.01  # Bulk modulus of air (GPa)
         
         # Process each porosity/saturation point
-        for i in range(len(porosity)):
+        for ii in range(len(porosity)):
             # Brie's equation for fluid bulk modulus
-            K_fluid = (K_water - K_air) * saturation[i]**3 + K_air
+            Kf = (Kw - Ka) * saturation[ii]**3 + Ka
             
             # Calculate Poisson's ratio
             v = (3 * bulk_modulus - 2 * shear_modulus) / (2 * (3 * bulk_modulus + shear_modulus))
             
-            # Calculate DEM parameters
+            # Calculate DEM parameters - matching velDEM implementation
             b = 3 * np.pi * aspect_ratio * (1 - 2 * v) / (4 * (1 - v**2))
-            c = 1 / (5 * ((3 + 8 * (1 - v) / (np.pi * aspect_ratio * (2 - v)))))
-            d = 1 / (5 * ((1 + 8 * (1 - v) * (5 - v) / (3 * np.pi * aspect_ratio * (2 - v)))))
+            c = 1 / 5 * ((3 + 8 * (1 - v) / (np.pi * aspect_ratio * (2 - v))))
+            c = 1 / c  # Two-step calculation as in velDEM
+            d = 1 / 5 * ((1 + 8 * (1 - v) * (5 - v) / (3 * np.pi * aspect_ratio * (2 - v))))
+            d = 1 / d  # Two-step calculation as in velDEM
             g = np.pi * aspect_ratio / (2 * (1 - v))
             
             # Define equation for effective bulk modulus
-            def bulk_equation(K_eff_val):
-                if K_eff_val <= 0:
+            def equation_Keff(Keff_val):
+                if Keff_val <= 0:
                     return 1e6  # Return large value for invalid K_eff
-                return (K_eff_val - K_fluid) / (bulk_modulus - K_fluid) * (bulk_modulus / K_eff_val)**(1 / (1 + b)) - (1 - porosity[i])**(1 / (1 + b))
+                return (Keff_val - Kf) / (bulk_modulus - Kf) * (bulk_modulus / Keff_val)**(1 / (1 + b)) - (1 - porosity[ii])**(1 / (1 + b))
             
             # Solve for effective bulk modulus
-            result_K = root(bulk_equation, bulk_modulus, method='lm')
+
+            result_K = root(equation_Keff, bulk_modulus, method='lm')
             if result_K.success:
-                K_eff[i] = result_K.x[0]
+                Keff[ii] = result_K.x[0]
             else:
-                K_eff[i] = bulk_modulus * (1 - porosity[i])  # Fallback
+                raise ValueError(f"Root finding for Keff failed at index {ii}: {result_K.message}")
+
             
             # Define equation for effective shear modulus
-            def shear_equation(G_eff_val):
-                if G_eff_val <= 0:
+            def equation_Geff(Geff_val):
+                if Geff_val <= 0:
                     return 1e6
-                term1 = G_eff_val / shear_modulus
-                term2 = ((1 / G_eff_val + c * g / (d * K_fluid)) / 
-                         (1 / shear_modulus + c * g / (d * K_fluid)))**(1 - c / d)
-                term3 = (1 - porosity[i])**(1 / d)
-                return term1 * term2 - term3
+                return Geff_val / shear_modulus * ((1 / Geff_val + c * g / (d * Kf)) / (1 / shear_modulus + c * g / (d * Kf)))**(1 - c / d) - (1 - porosity[ii])**(1 / d)
             
             # Solve for effective shear modulus
-            result_G = root(shear_equation, shear_modulus, method='lm')
+
+            result_G = root(equation_Geff, shear_modulus, method='lm')
             if result_G.success:
-                G_eff[i] = result_G.x[0]
+                Geff[ii] = result_G.x[0]
             else:
-                G_eff[i] = shear_modulus * (1 - porosity[i])  # Fallback
+                raise ValueError(f"Root finding for Geff failed at index {ii}: {result_G.message}")
+
             
             # Calculate total density considering porosity and saturation
-            rho_air = 1.225   # Density of air (kg/m³)
-            rho_water = 1000  # Density of water (kg/m³)
-            rho_total = mineral_density * (1 - porosity[i]) + (saturation[i] * rho_water + (1 - saturation[i]) * rho_air) * porosity[i]
+            rho_a = 1.225   # Density of air (kg/m³)
+            rho_w = 1000    # Density of water (kg/m³)
+            rhototal = mineral_density * (1 - porosity[ii]) + (saturation[ii] * rho_w + (1 - saturation[ii]) * rho_a) * porosity[ii]
             
             # Calculate P-wave velocity
-            Vp[i] = np.sqrt((K_eff[i] + 4/3 * G_eff[i]) * 1e9 / rho_total)
+            Vp[ii] = np.sqrt((Keff[ii] + 4/3 * Geff[ii]) * 1e9 / rhototal)
         
-        return K_eff, G_eff, Vp
+        return Keff, Geff, Vp
 
 
 class HertzMindlinModel(BaseVelocityModel):

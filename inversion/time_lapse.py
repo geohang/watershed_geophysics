@@ -224,7 +224,10 @@ class TimeLapseERTInversion(InversionBase):
         
         rhos_temp = rhos_temp.reshape((-1, 1))
         self.rhos1 = np.log(rhos_temp)
-        
+
+        del rhos_temp  # Delete after use
+        del rhos  # Delete after use
+
         # Data error and weighting matrix
         dataerr = np.array(dataerr)
         err_temp = np.hstack(dataerr)
@@ -358,10 +361,21 @@ class TimeLapseERTInversion(InversionBase):
                     fmert = float(Lambda * (mr.T @ self.Wm.T @ self.Wm @ mr))
                     ftert = float(alpha * (mr.T @ self.Wt.T @ self.Wt @ mr))
                     
-                    # Gradient computation
-                    grad_data = Jr.T @ self.Wd.T @ self.Wd @ dataerror_ert*-1
-                    grad_model = Lambda * self.Wm.T @ self.Wm @ mr
-                    grad_temporal = alpha * self.Wt.T @ self.Wt @ mr
+                    # Gradient computation with memory management
+                    temp1 = self.Wd @ dataerror_ert
+                    grad_data = Jr.T @ self.Wd.T @ temp1
+                    del temp1  # Delete temporary result
+
+                    temp2 = self.Wm @ mr
+                    grad_model = Lambda * self.Wm.T @ temp2
+                    del temp2  # Delete temporary result
+
+                    temp3 = self.Wt @ mr
+                    grad_temporal = alpha * self.Wt.T @ temp3
+                    del temp3  # Delete temporary result
+                    
+
+
                     
                 elif inversion_type == 'L1':
                     # L1 norm using IRLS
@@ -459,6 +473,9 @@ class TimeLapseERTInversion(InversionBase):
                          alpha * self.Wt.T @ Rt @ self.Wt + 
                          l1_epsilon * np.eye(Jr.shape[1]))
                 
+                # After using Jr for gradient computation
+                del Jr  # No longer needed
+
                 # Solve for model update
                 d_mr = generalized_solver(
                     H, -gc_r, 

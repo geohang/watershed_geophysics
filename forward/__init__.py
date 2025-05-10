@@ -1,33 +1,30 @@
 """
-Core utilities for geophysical modeling and inversion.
+Forward modeling utilities for geophysical simulations.
 """
 
-# Import mesh utilities
-from watershed_geophysics.core.mesh_utils import (
-    MeshCreator,
-    create_mesh_from_layers
+# Import ERT forward modeling utilities
+from watershed_geophysics.forward.ert_forward import (
+    ERTForwardModeling,
+    ertforward,
+    ertforward2,
+    ertforandjac,
+    ertforandjac2
 )
 
-# Import interpolation utilities
-from watershed_geophysics.core.interpolation import (
-    ProfileInterpolator,
-    interpolate_to_profile,
-    setup_profile_coordinates,
-    interpolate_structure_to_profile,
-    prepare_2D_profile_data,
-    interpolate_to_mesh
+# Import SRT forward modeling utilities
+from watershed_geophysics.forward.srt_forward import (
+    SeismicForwardModeling
 )
 
+# Define the public API for this module
 __all__ = [
-    # Mesh utilities
-    'MeshCreator',
-    'create_mesh_from_layers',
+    # ERT forward modeling
+    'ERTForwardModeling',
+    'ertforward',
+    'ertforward2',
+    'ertforandjac',
+    'ertforandjac2',
     
-    # Interpolation utilities
-    'ProfileInterpolator',
-    'interpolate_to_profile',
-    'setup_profile_coordinates',
-    'interpolate_structure_to_profile',
-    'prepare_2D_profile_data',
-    'interpolate_to_mesh'
+    # SRT forward modeling
+    'SeismicForwardModeling'
 ]

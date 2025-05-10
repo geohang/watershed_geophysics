@@ -1,0 +1,299 @@
+BCPressure:
+  PatchNames: bottom top Usr_2
+Cell:
+  '0':
+    dzScale:
+      Value: 10.0
+  '1':
+    dzScale:
+      Value: 0.8
+  '10':
+    dzScale:
+      Value: 0.2
+  '11':
+    dzScale:
+      Value: 0.2
+  '12':
+    dzScale:
+      Value: 0.1
+  '13':
+    dzScale:
+      Value: 0.1
+  '14':
+    dzScale:
+      Value: 0.05
+  '15':
+    dzScale:
+      Value: 0.05
+  '16':
+    dzScale:
+      Value: 0.04
+  '17':
+    dzScale:
+      Value: 0.03
+  '18':
+    dzScale:
+      Value: 0.02
+  '19':
+    dzScale:
+      Value: 0.01
+  '2':
+    dzScale:
+      Value: 0.8
+  '3':
+    dzScale:
+      Value: 0.4
+  '4':
+    dzScale:
+      Value: 0.4
+  '5':
+    dzScale:
+      Value: 0.4
+  '6':
+    dzScale:
+      Value: 0.4
+  '7':
+    dzScale:
+      Value: 0.4
+  '8':
+    dzScale:
+      Value: 0.2
+  '9':
+    dzScale:
+      Value: 0.2
+ComputationalGrid:
+  DX: 5.041667
+  DY: 5.041667
+  DZ: 10
+  Lower:
+    X: 569131.09
+    Y: 4842212.33
+    Z: 0
+  NX: 48
+  NY: 50
+  NZ: 20
+Contaminants:
+  Names: ''
+Cycle:
+  Names: constant
+  constant:
+    Names: alltime
+    Repeat: -1
+    alltime:
+      Length: 1
+Domain:
+  GeomName: domain
+FileVersion: 4
+Geom:
+  Perm:
+    Names: domain s1 s2 s3
+    TensorByGeom:
+      Names: domain
+  Porosity:
+    GeomNames: domain s1 s2 s3
+  domain:
+    ICPressure:
+      RefGeom: domain
+      RefPatch: bottom
+      Value: 0
+    Patches: bottom top Usr_2
+    Perm:
+      TensorValX: 1.0
+      TensorValY: 1.0
+      TensorValZ: 1.0
+      Type: Constant
+      Value: 0.0018
+    Porosity:
+      Type: Constant
+      Value: 0.33
+    RelPerm:
+      Alpha: 1.0
+      N: 3.0
+    Saturation:
+      Alpha: 1.0
+      N: 3.0
+      SRes: 0.001
+      SSat: 1.0
+    SpecificStorage:
+      Value: 1.0e-05
+  indi_input:
+    FileName: soil.pfb
+  s1:
+    Perm:
+      Type: Constant
+      Value: 0.0018
+    Porosity:
+      Type: Constant
+      Value: 0.4
+    RelPerm:
+      Alpha: 3.548
+      N: 4.162
+    Saturation:
+      Alpha: 3.548
+      N: 4.162
+      SRes: 0.0001
+      SSat: 1.0
+  s2:
+    Perm:
+      Type: Constant
+      Value: 0.00018
+    Porosity:
+      Type: Constant
+      Value: 0.25
+    RelPerm:
+      Alpha: 3.467
+      N: 2.738
+    Saturation:
+      Alpha: 3.467
+      N: 2.738
+      SRes: 0.0001
+      SSat: 1.0
+  s3:
+    Perm:
+      Type: Constant
+      Value: 0.00018
+    Porosity:
+      Type: Constant
+      Value: 0.05
+    RelPerm:
+      Alpha: 2.692
+      N: 2.445
+    Saturation:
+      Alpha: 2.692
+      N: 2.445
+      SRes: 0.0001
+      SSat: 1.0
+GeomInput:
+  Names: solidfile indi_input
+  indi_input:
+    GeomNames: s1 s2 s3
+    InputType: IndicatorField
+  s1:
+    Value: 1
+  s2:
+    Value: 2
+  s3:
+    Value: 3
+  solidfile:
+    FileName: test1.pfsol
+    GeomNames: domain
+    InputType: SolidFile
+Gravity: 1.0
+ICPressure:
+  GeomNames: domain
+  Type: HydroStaticPatch
+KnownSolution: NoKnownSolution
+Mannings:
+  Geom:
+    domain:
+      Value: 4.4e-06
+  GeomNames: domain
+  Type: Constant
+Patch:
+  Usr_2:
+    BCPressure:
+      Cycle: constant
+      Type: FluxConst
+      alltime:
+        Value: 0.0
+  bottom:
+    BCPressure:
+      Cycle: constant
+      Type: FluxConst
+      alltime:
+        Value: 0.0
+  top:
+    BCPressure:
+      Cycle: constant
+      Type: OverlandFlow
+      alltime:
+        Value: -0.05
+Perm:
+  TensorType: TensorByGeom
+Phase:
+  Names: water
+  RelPerm:
+    GeomNames: domain s1 s2 s3
+    Type: VanGenuchten
+  Saturation:
+    GeomNames: domain s1 s2 s3
+    Type: VanGenuchten
+  water:
+    Density:
+      Type: Constant
+      Value: 1.0
+    Mobility:
+      Type: Constant
+      Value: 1.0
+    Viscosity:
+      Type: Constant
+      Value: 1.0
+PhaseSources:
+  water:
+    Geom:
+      domain:
+        Value: 0.0
+    GeomNames: domain
+    Type: Constant
+Process:
+  Topology:
+    P: 1
+    Q: 1
+    R: 1
+Solver:
+  AbsTol: 1.0e-08
+  Drop: 1.0e-20
+  Linear:
+    KrylovDimension: 70
+    MaxRestarts: 2
+    Preconditioner: PFMG
+  MaxConvergenceFailures: 8
+  MaxIter: 2500000
+  Nonlinear:
+    DerivativeEpsilon: 1.0e-16
+    EtaChoice: EtaConstant
+    EtaValue: 0.001
+    Globalization: LineSearch
+    MaxIter: 1000
+    ResidualTol: 1.0e-06
+    StepTol: 1.0e-15
+    UseJacobian: true
+    VariableDz: true
+  PrintMask: true
+  PrintPressure: true
+  PrintSaturation: true
+  PrintSubsurfData: true
+  PrintVelocities: false
+  TerrainFollowingGrid:
+    SlopeUpwindFormulation: Upwind
+    _value_: true
+  _value_: Richards
+SpecificStorage:
+  GeomNames: domain
+  Type: Constant
+TimeStep:
+  GrowthFactor: 1.1
+  InitialStep: 1.0
+  MaxStep: 1000
+  MinStep: 1
+  Type: Growth
+TimingInfo:
+  BaseUnit: 1.0
+  DumpInterval: 10000.0
+  StartCount: 0
+  StartTime: 0.0
+  StopTime: 10000000.0
+TopoSlopesX:
+  FileName: slope_x.pfb
+  GeomNames: domain
+  Type: PFBFile
+TopoSlopesY:
+  FileName: slope_y.pfb
+  GeomNames: domain
+  Type: PFBFile
+Wells:
+  Names: ''
+dzScale:
+  GeomNames: domain
+  Type: nzList
+  nzListNumber: 20
