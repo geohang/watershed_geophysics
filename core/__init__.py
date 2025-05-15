@@ -5,7 +5,9 @@ Core utilities for geophysical modeling and inversion.
 # Import mesh utilities
 from watershed_geophysics.core.mesh_utils import (
     MeshCreator,
-    create_mesh_from_layers
+    create_mesh_from_layers,
+    extract_velocity_interface,
+    add_velocity_interface
 )
 
 # Import interpolation utilities
@@ -15,14 +17,15 @@ from watershed_geophysics.core.interpolation import (
     setup_profile_coordinates,
     interpolate_structure_to_profile,
     prepare_2D_profile_data,
-    interpolate_to_mesh,
-    create_surface_lines
+    interpolate_to_mesh
 )
 
 __all__ = [
     # Mesh utilities
     'MeshCreator',
     'create_mesh_from_layers',
+    'extract_velocity_interface',
+    'add_velocity_interface',
     
     # Interpolation utilities
     'ProfileInterpolator',
@@ -31,5 +34,4 @@ __all__ = [
     'interpolate_structure_to_profile',
     'prepare_2D_profile_data',
     'interpolate_to_mesh'
-    'create_surface_lines'
 ]
