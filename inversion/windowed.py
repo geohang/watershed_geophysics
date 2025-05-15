@@ -15,7 +15,7 @@ from .time_lapse import TimeLapseERTInversion
 
 
 def _process_window(start_idx: int, print_lock, data_dir: str, ert_files: List[str],
-                  measurement_times: List[float], window_size: int, mesh_file: str,
+                  measurement_times: List[float], window_size: int, mesh: str,
                   inversion_params: Dict[str, Any]) -> Tuple[int, Dict[str, Any]]:
     """
     Process a single window for parallel execution.
@@ -27,7 +27,7 @@ def _process_window(start_idx: int, print_lock, data_dir: str, ert_files: List[s
         ert_files: List of ERT data filenames
         measurement_times: Array of measurement times
         window_size: Size of the window
-        mesh_file: Path to mesh file
+        mesh: mesh
         inversion_params: Dictionary of inversion parameters
         
     Returns:
@@ -40,13 +40,8 @@ def _process_window(start_idx: int, print_lock, data_dir: str, ert_files: List[s
     inversion_type = inversion_params.get('inversion_type', 'L2')
     
     # Load mesh for each process
-    if mesh_file:
-        try:
-            mesh = pg.load(mesh_file)
-        except Exception as e:
-            with print_lock:
-                print(f"Error loading mesh in process {start_idx}: {str(e)}")
-            mesh = None
+    if mesh:
+        mesh = mesh
     else:
         mesh = None
     
