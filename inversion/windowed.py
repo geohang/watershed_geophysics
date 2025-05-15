@@ -224,7 +224,7 @@ class WindowedTimeLapseERTInversion:
             # Store first two timesteps from first window
             all_models.append(first_result['final_model'][:, 0])
             all_models.append(first_result['final_model'][:, 1])
-            
+            temp_mesh = first_result['mesh']
             if first_result['all_chi2'] is not None:
                 all_chi2.extend(first_result['all_chi2'])
             
@@ -268,7 +268,7 @@ class WindowedTimeLapseERTInversion:
             result.final_models = np.hstack(all_models)
             result.all_coverage = all_coverage
             result.all_chi2 = all_chi2
-            result.mesh = window_results[0].mesh if isinstance(self.mesh, pg.Mesh) else None
+            result.mesh = temp_mesh if isinstance(self.mesh, pg.Mesh) else None
             
             print("\nFinal result summary:")
             print(f"Model shape: {result.final_models.shape if result.final_models is not None else None}")
