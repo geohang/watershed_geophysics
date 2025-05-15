@@ -75,6 +75,7 @@ def _process_window(start_idx: int, print_lock, data_dir: str, ert_files: List[s
             'final_model': window_result.final_models,
             'coverage': window_result.all_coverage[0] if window_result.all_coverage else None,
             'all_chi2': window_result.all_chi2,
+            'mesh': window_result.mesh,
             'mesh_cells': window_result.mesh.cellCount() if window_result.mesh else None,
             'mesh_nodes': window_result.mesh.nodeCount() if window_result.mesh else None
         }
@@ -163,7 +164,7 @@ class WindowedTimeLapseERTInversion:
                 else:
                     with tempfile.NamedTemporaryFile(suffix='.bms', delete=False) as tmp:
                         mesh_file = tmp.name
-                        pg.save(self.mesh, mesh_file)
+                        self.mesh.save(mesh_file)
             
             # Process all windows
             if window_parallel:
@@ -267,7 +268,7 @@ class WindowedTimeLapseERTInversion:
             result.final_models = np.hstack(all_models)
             result.all_coverage = all_coverage
             result.all_chi2 = all_chi2
-            result.mesh = self.mesh if isinstance(self.mesh, pg.Mesh) else None
+            result.mesh = window_results[0].mesh if isinstance(self.mesh, pg.Mesh) else None
             
             print("\nFinal result summary:")
             print(f"Model shape: {result.final_models.shape if result.final_models is not None else None}")

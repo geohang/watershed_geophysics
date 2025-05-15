@@ -362,18 +362,10 @@ class TimeLapseERTInversion(InversionBase):
                     ftert = float(alpha * (mr.T @ self.Wt.T @ self.Wt @ mr))
                     
                     # Gradient computation with memory management
-                    temp1 = self.Wd @ dataerror_ert
-                    grad_data = Jr.T @ self.Wd.T @ temp1
-                    del temp1  # Delete temporary result
-
-                    temp2 = self.Wm @ mr
-                    grad_model = Lambda * self.Wm.T @ temp2
-                    del temp2  # Delete temporary result
-
-                    temp3 = self.Wt @ mr
-                    grad_temporal = alpha * self.Wt.T @ temp3
-                    del temp3  # Delete temporary result
-                    
+                    grad_data = Jr.T @ self.Wd.T @ self.Wd @ dataerror_ert*-1
+                    grad_model = Lambda * self.Wm.T @ self.Wm @ mr
+                    grad_temporal = alpha * self.Wt.T @ self.Wt @ mr
+                        
 
 
                     
