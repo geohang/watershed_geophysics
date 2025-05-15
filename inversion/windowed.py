@@ -158,13 +158,7 @@ class WindowedTimeLapseERTInversion:
         # Create temporary mesh file for parallel processing
         mesh_file = None
         try:
-            if window_parallel and self.mesh is not None:
-                if isinstance(self.mesh, str):
-                    mesh_file = self.mesh
-                else:
-                    with tempfile.NamedTemporaryFile(suffix='.bms', delete=False) as tmp:
-                        mesh_file = tmp.name
-                        self.mesh.save(mesh_file)
+            mesh_file = self.mesh
             
             # Process all windows
             if window_parallel:
