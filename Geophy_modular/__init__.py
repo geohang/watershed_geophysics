@@ -14,6 +14,12 @@ from watershed_geophysics.Geophy_modular.structure_integration import (
     create_joint_inversion_mesh
 )
 
+from watershed_geophysics.Geophy_modular.ERT_to_WC import (
+    ERTtoWC,
+    plot_time_series
+)
+
+
 __all__ = [
     # Seismic processing functions
     'extract_velocity_structure',
@@ -24,4 +30,9 @@ __all__ = [
     'create_ert_mesh_with_structure',
     'integrate_velocity_interface',
     'create_joint_inversion_mesh'
+
+
+     # ERT to water content conversion
+    'ERTtoWC',
+    'plot_time_series'
 ]
