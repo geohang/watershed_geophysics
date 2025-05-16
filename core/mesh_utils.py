@@ -5,7 +5,8 @@ import numpy as np
 import pygimli as pg
 import pygimli.meshtools as mt
 from typing import Tuple, List, Optional, Union
-
+from scipy.interpolate import interp1d
+from scipy.signal import savgol_filter
 
 def create_mesh_from_layers(surface: np.ndarray,
                           line1: np.ndarray,
@@ -93,101 +94,9 @@ def create_mesh_from_layers(surface: np.ndarray,
     return mesh, mesh_centers, markers,geom
 
 
-"""
-Mesh utilities for geophysical modeling and inversion.
-"""
-import numpy as np
-import pygimli as pg
-import pygimli.meshtools as mt
-from typing import Tuple, List, Optional, Union
-from scipy.interpolate import interp1d
-from scipy.signal import savgol_filter
 
 
-def create_mesh_from_layers(surface: np.ndarray,
-                          line1: np.ndarray,
-                          line2: np.ndarray,
-                          bottom_depth: float = 30.0,
-                          quality: float = 28,
-                          area: float = 40) -> Tuple[pg.Mesh, np.ndarray, np.ndarray]:
-    """
-    Create mesh from layer boundaries and get cell centers and markers.
-    
-    Args:
-        surface: Surface coordinates [[x,z],...] (already normalized)
-        line1: First layer boundary coordinates (already normalized)
-        line2: Second layer boundary coordinates (already normalized)
-        bottom_depth: Depth below surface minimum for mesh bottom
-        quality: Mesh quality parameter
-        area: Maximum cell area
-        
-    Returns:
-        mesh: PyGIMLI mesh
-        mesh_centers: Array of cell center coordinates
-        markers: Array of cell markers
-    """
-    # Calculate bottom elevation from normalized surface
-    min_surface_elev = np.nanmin(surface[:,1])
-    bottom_elev = min_surface_elev - bottom_depth
-    
-    # Create reversed lines for polygon creation
-    line1r = line1.copy()
-    line1r[:,0] = np.flip(line1[:,0])
-    line1r[:,1] = np.flip(line1[:,1])
-    
-    line2r = line2.copy()
-    line2r[:,0] = np.flip(line2[:,0])
-    line2r[:,1] = np.flip(line2[:,1])
-    
-    # Create surface layer
-    layer1 = mt.createPolygon(surface,
-                             isClosed=False, 
-                             marker=2, 
-                             boundaryMarker=-1,
-                             interpolate='linear', 
-                             area=0.1)
-    
-    # Create middle layer
-    Gline1 = mt.createPolygon(np.vstack((line1, line2r)),
-                             isClosed=True, 
-                             marker=3, 
-                             boundaryMarker=1,
-                             interpolate='linear', 
-                             area=1)
-    
-    # Create bottom boundary
-    Gline2 = mt.createPolygon([[surface[0,0], surface[0,1]],
-                              [line2[0,0], bottom_elev],
-                              [line2[-1,0], bottom_elev],
-                              [surface[-1,0], surface[-1,1]]],
-                             isClosed=False, 
-                             marker=2, 
-                             boundaryMarker=1,
-                             interpolate='linear', 
-                             area=2)
-    
-    # Create bottom layer
-    layer2 = mt.createPolygon(np.vstack((line2r,
-                                        [[line2[0,0], line2[0,1]],
-                                         [line2[0,0], bottom_elev],
-                                         [line2[-1,0], bottom_elev],
-                                         [line2[-1,0], line2[-1,1]]])),
-                             isClosed=True, 
-                             marker=2, 
-                             area=2, 
-                             boundaryMarker=1)
-    
-    # Combine all geometries
-    geom = layer1 + layer2 + Gline1 + Gline2
-    
-    # Create mesh
-    mesh = mt.createMesh(geom, quality=quality, area=area)
-    
-    # Get cell centers and markers
-    mesh_centers = np.array(mesh.cellCenters())
-    markers = np.array(mesh.cellMarkers())
-    
-    return mesh, mesh_centers, markers
+
 
 
 def extract_velocity_interface(mesh, velocity_data, threshold=1200, interval=4.0):

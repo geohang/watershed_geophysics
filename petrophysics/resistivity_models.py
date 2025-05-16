@@ -98,7 +98,7 @@ def resistivity_to_saturation(resistivity, rhos, n, sigma_sur=0):
     
     # First calculate saturation without surface conductivity (Archie's law)
     # This provides an initial guess for numerical solution
-    S_initial = (rhos * resistivity_array) ** (-1.0/n_array)
+    S_initial = (rhos / resistivity_array) ** (1.0/n_array)
     S_initial = np.clip(S_initial, 0.01, 1.0)
     
     # Initialize saturation array
