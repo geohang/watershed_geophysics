@@ -110,9 +110,7 @@ class SeismicForwardModeling:
         Returns:
             Tuple of (synthetic seismic data container, simulation mesh)
         """
-        # Set random seed if provided
-        if seed is not None:
-            pg.rrng.randpin.seed(seed)
+
         
         # Create seismic scheme (Refraction Data)
         scheme = tt.createRAData(sensor_x, shotDistance=shot_distance)
