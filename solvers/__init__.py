@@ -7,14 +7,23 @@ from watershed_geophysics.solvers.linear_solvers import (
     RRLSQRSolver,
     RRLSSolver,
     direct_solver,
-    TikhonvRegularization,
+    TikhonvRegularization,  # Note: Original class name has a typo
     IterativeRefinement,
     get_optimal_solver
 )
 
+# The generalized_solver from watershed_geophysics.solvers.solver seems redundant
+# with the one in linear_solvers and is not included here to avoid confusion.
 
-
-from watershed_geophysics.solvers.solver import (
-    generalized_solver,
-
-)
+__all__ = [
+    'generalized_solver',
+    'LinearSolver',
+    'CGLSSolver',
+    'LSQRSolver',
+    'RRLSQRSolver',
+    'RRLSSolver',
+    'direct_solver',
+    'TikhonvRegularization',
+    'IterativeRefinement',
+    'get_optimal_solver'
+]

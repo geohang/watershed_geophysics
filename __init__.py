@@ -9,7 +9,7 @@ __version__ = '0.1.0'
 
 # Core utilities
 from watershed_geophysics.core.interpolation import (
-    ProfileInterpolator, 
+    ProfileInterpolator,
     interpolate_to_profile,
     setup_profile_coordinates,
     interpolate_structure_to_profile,
@@ -23,17 +23,20 @@ from watershed_geophysics.core.mesh_utils import (
 )
 
 # Import from model_output module
-from watershed_geophysics.model_output.modflow_output import MODFLOWWaterContent, MODFLOWPorosity
 from watershed_geophysics.model_output.base import HydroModelOutput
+from watershed_geophysics.model_output.modflow_output import (
+    MODFLOWWaterContent,
+    MODFLOWPorosity,
+    binaryread
+)
 
 # Try to import ParFlow classes if available
+PARFLOW_AVAILABLE = False
 try:
     from watershed_geophysics.model_output.parflow_output import ParflowSaturation, ParflowPorosity
+    PARFLOW_AVAILABLE = True
 except ImportError:
     pass
-
-
-
 
 # Forward modeling
 from watershed_geophysics.forward.ert_forward import (
@@ -43,6 +46,7 @@ from watershed_geophysics.forward.ert_forward import (
     ertforandjac,
     ertforandjac2
 )
+# Note: SeismicForwardModeling from forward.srt_forward is available via watershed_geophysics.forward.SeismicForwardModeling
 
 # Inversion utilities
 from watershed_geophysics.inversion.base import (
@@ -50,18 +54,9 @@ from watershed_geophysics.inversion.base import (
     TimeLapseInversionResult,
     InversionBase
 )
-
-from watershed_geophysics.inversion.ert_inversion import (
-    ERTInversion
-)
-
-from watershed_geophysics.inversion.time_lapse import (
-    TimeLapseERTInversion
-)
-
-from watershed_geophysics.inversion.windowed import (
-    WindowedTimeLapseERTInversion
-)
+from watershed_geophysics.inversion.ert_inversion import ERTInversion
+from watershed_geophysics.inversion.time_lapse import TimeLapseERTInversion
+from watershed_geophysics.inversion.windowed import WindowedTimeLapseERTInversion
 
 # Linear solvers
 from watershed_geophysics.solvers.linear_solvers import (
@@ -77,16 +72,11 @@ from watershed_geophysics.solvers.linear_solvers import (
     get_optimal_solver
 )
 
-# Petrophysics - Resistivity models
-from watershed_geophysics.petrophysics.resistivity_models import (
+# Petrophysics - import from the petrophysics module's __init__.py
+from watershed_geophysics.petrophysics import (
     water_content_to_resistivity,
     resistivity_to_water_content,
     resistivity_to_saturation,
-
-)
-
-# Petrophysics - Velocity models
-from watershed_geophysics.petrophysics.velocity_models import (
     BaseVelocityModel,
     VRHModel,
     BrieModel,
@@ -101,42 +91,44 @@ from watershed_geophysics.petrophysics.velocity_models import (
 # Define what gets imported with 'from watershed_geophysics import *'
 __all__ = [
     # Core - Interpolation
-    'ProfileInterpolator', 
+    'ProfileInterpolator',
     'interpolate_to_profile',
     'setup_profile_coordinates',
     'interpolate_structure_to_profile',
     'prepare_2D_profile_data',
     'interpolate_to_mesh',
-    
+
     # Core - Mesh
     'MeshCreator',
     'create_mesh_from_layers',
-    
-    # MODFLOW
+
+    # Model Output
+    'HydroModelOutput',
     'MODFLOWWaterContent',
+    'MODFLOWPorosity',
     'binaryread',
-    
+
     # Forward modeling
     'ERTForwardModeling',
     'ertforward',
     'ertforward2',
     'ertforandjac',
     'ertforandjac2',
-    
+
     # Inversion base
     'InversionResult',
     'TimeLapseInversionResult',
     'InversionBase',
-    
+
     # ERT inversion
     'ERTInversion',
-    
+
     # Time-lapse inversion
     'TimeLapseERTInversion',
-    
+
     # Windowed inversion
     'WindowedTimeLapseERTInversion',
-    
+
     # Linear solvers
     'generalized_solver',
     'LinearSolver',
@@ -148,19 +140,13 @@ __all__ = [
     'TikhonvRegularization',
     'IterativeRefinement',
     'get_optimal_solver',
-    
-    # Resistivity models
-    'BaseResistivityModel',
-    'ArchieModel',
-    'WaxmanSmitsModel',
-    'ModifiedWaxmanSmits',
-    'HybridResistivityModel',
-    'calculate_resistivity_archie',
-    'waxman_smits_resistivity',
-    'estimate_saturation_from_resistivity_Ro',
-    'estimate_saturation_fsolve_Ro',
-    
-    # Velocity models
+
+    # Petrophysics - Resistivity models
+    'water_content_to_resistivity',
+    'resistivity_to_water_content',
+    'resistivity_to_saturation',
+
+    # Petrophysics - Velocity models
     'BaseVelocityModel',
     'VRHModel',
     'BrieModel',
@@ -171,3 +157,6 @@ __all__ = [
     'velDEM',
     'vel_porous'
 ]
+
+if PARFLOW_AVAILABLE:
+    __all__.extend(['ParflowSaturation', 'ParflowPorosity'])
